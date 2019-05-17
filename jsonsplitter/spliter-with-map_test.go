@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SoftwareUndagi/go-common-libs/common"
+	"github.com/SoftwareUndagi/golibs/common"
 )
 
 func generateSingleAppender(t *testing.T, path string) func(bytes []byte) (err error) {
