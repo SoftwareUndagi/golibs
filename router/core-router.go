@@ -10,7 +10,6 @@ import (
 
 	"github.com/SoftwareUndagi/golibs/coremodel"
 
-	"bitbucket.org/theoerp/bham-server/route/security"
 	"github.com/SoftwareUndagi/golibs/common"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -164,7 +163,7 @@ var DefaultGetterEditorToken = GetEditorTokenOnRequestHeader
 type RouteLoggerPredefinedParameterFiller func(executionID string, routePath string, req *http.Request, routeParameter Parameter, username string, userUUID string, logEntry *log.Entry) (modifiedLogEntry *log.Entry)
 
 //LoginInformationProviderFunction login handler definition
-type LoginInformationProviderFunction func(DatabaseReference *gorm.DB, logEntry *log.Entry, req *http.Request) (userData security.SimpleUserData, err common.ErrorWithCodeData)
+type LoginInformationProviderFunction func(DatabaseReference *gorm.DB, logEntry *log.Entry, req *http.Request) (userData common.SimpleUserData, err common.ErrorWithCodeData)
 
 //CORSAllowedPaths path yang di injinkan cors
 var CORSAllowedPaths = make(map[string][]string)
