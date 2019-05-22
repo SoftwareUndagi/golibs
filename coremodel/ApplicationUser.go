@@ -2,6 +2,8 @@ package coremodel
 
 import (
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 //tablenameApplicationUser nama table . di constant untuk optimasi
@@ -10,7 +12,7 @@ const tablenameApplicationUser = "sec_user"
 //ApplicationUser table: sec_user
 type ApplicationUser struct {
 	//ID primary key, column: pk
-	ID int64 `gorm:"column:pk;AUTO_INCREMENT;primary_key" json:"id"`
+	ID int32 `gorm:"column:id;AUTO_INCREMENT;primary_key" json:"id"`
 	//RealName nama lengkap, column: real_name
 	RealName string `gorm:"column:real_name" json:"realName"`
 	//Username username untuk login, column: user_name
@@ -43,9 +45,26 @@ type ApplicationUser struct {
 	Remark string `gorm:"column:remark" json:"remark"`
 	//Uuid UUID, untuk integrasi misal dengan firebase, column: uuid
 	UUID string `gorm:"column:uuid" json:"uuid"`
+	//UsageCounter berapa data yang sudah merefer ini , column: usage_count
+	UsageCounter int16 `gorm:"column:usage_count" json:"usageCounter"`
+	//CreatedAt column : createdAt time when data was created
+	CreatedAt *time.Time `gorm:"column:createdAt" json:"createdAt"`
+	//CreatorName username (audit trail), who create data
+	CreatorName string `gorm:"column:creator_name" json:"creatorName"`
+	//CreatorIPAddress IP address(audit trail), from which IP address data created
+	CreatorIPAddress string `gorm:"column:creator_name" json:"creatorIpAddress"`
+	//UpdatedAt last update at column : updatedAt
+	UpdatedAt *time.Time `gorm:"column:updatedAt" json:"updatedAt"`
+	//ModifiedBy audit trail. latest user that modify data
+	ModifiedBy *string `gorm:"column:modified_by" json:"modifiedBy"`
+	//ModifiedIPAddress IP address from where user modify data(latest update)
+	ModifiedIPAddress string `gorm:"column:modified_by_ip" json:"modifiedIpAddress"`
 }
 
 //TableName table name for struct ApplicationUser
-func (u ApplicationUser) TableName() string {
+func (u ApplicationUser) TableName(db *gorm.DB) string {
 	return tablenameApplicationUser
 }
+
+//sampleUsernameStruct sample user. Cache helper to get table name
+var sampleUsernameStruct = ApplicationUser{}

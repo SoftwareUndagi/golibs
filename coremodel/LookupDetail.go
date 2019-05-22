@@ -24,5 +24,5 @@ type LookupDetail struct {
 
 //TableName table name for m_lookup_details
 func (p *LookupDetail) TableName(db *gorm.DB) (name string) {
-	return "m_lookup_details"
+	return "ct_lookup_details"
 }

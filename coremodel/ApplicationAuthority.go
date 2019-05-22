@@ -6,21 +6,15 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-//tablenameApplicationGroup nama table . di constant untuk optimasi
-const tablenameApplicationGroup = "sec_group"
+//applicationAuthorityTableName constant table name sec_authority
+const applicationAuthorityTableName = "sec_authority"
 
-//ApplicationGroup table: sec_group
-type ApplicationGroup struct {
-	//ID id dari group, column: id
-	ID int32 `gorm:"column:id;AUTO_INCREMENT;primary_key" json:"id"`
-	//Code kode group, column: group_code
-	Code string `gorm:"column:group_code" json:"code"`
-	//Name nama group, column: group_name
-	Name string `gorm:"column:group_name" json:"name"`
-	//Remark catatan dari group, column: group_remark
-	Remark string `gorm:"column:group_remark" json:"remark"`
-	//UsageCounter berapa data yang sudah merefer ini , column: usage_count
-	UsageCounter int16 `gorm:"column:usage_count" json:"usageCounter"`
+//ApplicationAuthority struct for table : sec_authority
+type ApplicationAuthority struct {
+	//Code column: code. code of authority
+	Code string `gorm:"column:code;primary_key" json:"code"`
+	//Remark remark for group column: remark
+	Remark string `gorm:"column:remark" json:"remark"`
 	//CreatedAt column : createdAt time when data was created
 	CreatedAt *time.Time `gorm:"column:createdAt" json:"createdAt"`
 	//CreatorName username (audit trail), who create data
@@ -37,6 +31,6 @@ type ApplicationGroup struct {
 }
 
 //TableName table name for struct ApplicationGroup
-func (u ApplicationGroup) TableName(db *gorm.DB) string {
-	return tablenameApplicationGroup
+func (u ApplicationAuthority) TableName(db *gorm.DB) string {
+	return applicationAuthorityTableName
 }

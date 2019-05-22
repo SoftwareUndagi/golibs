@@ -30,7 +30,7 @@ type LookupHeader struct {
 
 //TableName table name for m_lookup_header
 func (p *LookupHeader) TableName(db *gorm.DB) (name string) {
-	return "m_lookup_header"
+	return "ct_lookup_header"
 }
 
 //AppendLookupDetail append lookup detail to header

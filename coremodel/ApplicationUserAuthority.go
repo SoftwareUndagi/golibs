@@ -6,21 +6,18 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-//tablenameApplicationGroup nama table . di constant untuk optimasi
-const tablenameApplicationGroup = "sec_group"
+//applicationUserAuthority constant table name sec_user_authority
+const applicationUserAuthority = "sec_user_authority"
 
-//ApplicationGroup table: sec_group
-type ApplicationGroup struct {
-	//ID id dari group, column: id
-	ID int32 `gorm:"column:id;AUTO_INCREMENT;primary_key" json:"id"`
-	//Code kode group, column: group_code
-	Code string `gorm:"column:group_code" json:"code"`
-	//Name nama group, column: group_name
-	Name string `gorm:"column:group_name" json:"name"`
-	//Remark catatan dari group, column: group_remark
-	Remark string `gorm:"column:group_remark" json:"remark"`
-	//UsageCounter berapa data yang sudah merefer ini , column: usage_count
-	UsageCounter int16 `gorm:"column:usage_count" json:"usageCounter"`
+//ApplicationUserAuthority mapper for table : sec_user_authority
+type ApplicationUserAuthority struct {
+	//ID column ID
+	ID int32 `gorm:"column:id;primary_key;AUTO_INCREMENT" json:"id"`
+	//UserID column: user_id id of user
+	UserID int32 `gorm:"column:user_id" json:"userId"`
+
+	//AuthCode column: authority_code, user auth code
+	AuthCode string `gorm:"column:authority_code" json:"authCode"`
 	//CreatedAt column : createdAt time when data was created
 	CreatedAt *time.Time `gorm:"column:createdAt" json:"createdAt"`
 	//CreatorName username (audit trail), who create data
@@ -36,7 +33,10 @@ type ApplicationGroup struct {
 	ModifiedIPAddress string `gorm:"column:modified_by_ip" json:"modifiedIpAddress"`
 }
 
-//TableName table name for struct ApplicationGroup
-func (u ApplicationGroup) TableName(db *gorm.DB) string {
-	return tablenameApplicationGroup
+//TableName table of struct
+func (p ApplicationUserAuthority) TableName(db *gorm.DB) string {
+	return applicationUserAuthority
 }
+
+//sampleAppAuthStruct helper. for reuse, when need to get table name.in case used in multiple scheme
+var sampleAppAuthStruct = ApplicationUserAuthority{}

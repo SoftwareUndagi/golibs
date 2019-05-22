@@ -6,11 +6,11 @@ const tablenameUserToGroupAssignment = "sec_group_assignment"
 //ApplicationUserToGroupAssignment table: sec_group_assignment
 type ApplicationUserToGroupAssignment struct {
 	//ID id data(surrogate key), column: pk
-	ID int64 `gorm:"column:pk;AUTO_INCREMENT;primary_key" json:"id"`
+	ID int32 `gorm:"column:pk;AUTO_INCREMENT;primary_key" json:"id"`
 	//GroupID id dari group, column: group_id
-	GroupID int64 `gorm:"column:group_id" json:"groupId"`
+	GroupID int32 `gorm:"column:group_id" json:"groupId"`
 	//UserID id dari user, column: user_id
-	UserID int64 `gorm:"column:user_id" json:"userId"`
+	UserID int32 `gorm:"column:user_id" json:"userId"`
 	//User refer with column user_id
 	User ApplicationUser `gorm:"foreignkey:UserID" json:"user"`
 	//Group refer with column group_id
