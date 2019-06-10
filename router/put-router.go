@@ -91,7 +91,7 @@ func RegisterPutJSONHandler(param RegisterPutJSONHandlerParam) *mux.Route {
 
 				}
 			}
-			userUUID = user.UserUUID
+			userUUID = user.UUID
 			username = user.Username
 		}
 		if param.CheckForDoubleSubmit != nil {

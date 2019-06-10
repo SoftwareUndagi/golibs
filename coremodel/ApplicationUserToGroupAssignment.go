@@ -1,5 +1,12 @@
 package coremodel
 
+import (
+	"time"
+
+	"github.com/SoftwareUndagi/golibs/common"
+	"github.com/jinzhu/gorm"
+)
+
 //tablenameUserToGroupAssignment nama table . di constant untuk optimasi
 const tablenameUserToGroupAssignment = "sec_group_assignment"
 
@@ -16,12 +23,29 @@ type ApplicationUserToGroupAssignment struct {
 	//Group refer with column group_id
 	Group ApplicationGroup `gorm:"foreignkey:GroupID" json:"group"`
 	//Creator column: creator_name
-	Creator string `gorm:"column:creator_name" json:"creator"`
+	CreatorName string `gorm:"column:creator_name" json:"creator"`
 	//CreatorIpAddress column: creator_ip_address
 	CreatorIPAddress string `gorm:"column:creator_ip_address" json:"creatorIpAddress"`
+	//CreatedAt column : createdAt time when data was created
+	CreatedAt *time.Time `gorm:"column:createdAt" json:"createdAt"`
 }
 
 //TableName table name for struct UserToGroupAssignment
 func (u ApplicationUserToGroupAssignment) TableName() string {
 	return tablenameUserToGroupAssignment
+}
+
+//BeforeCreate before create task. to assign IP address and username on data
+func (u ApplicationUserToGroupAssignment) BeforeCreate(scope *gorm.Scope) (err error) {
+	if len(u.CreatorName) == 0 {
+		if uname, okName := scope.Get(common.GormVariableUsername); okName {
+			u.CreatorName = uname.(string)
+		}
+	}
+	if len(u.CreatorIPAddress) == 0 {
+		if ipAddr, okIP := scope.Get(common.GormVariableIPAddress); okIP {
+			u.CreatorIPAddress = ipAddr.(string)
+		}
+	}
+	return nil
 }

@@ -99,6 +99,12 @@ func (p OperatorCode) StartWith(testedQuery string) (result bool) {
 	return strings.HasPrefix(testedQuery, OperatorCodeMap[p])
 }
 
+//usageCountQueryByDialect wraper,as of db dialect. key = table name
+type usageCountQueryByDialect map[string][]string
+
+//usageCountQuery usae count query,key  = dialect of database
+type usageCountQuery map[string]usageCountQueryByDialect
+
 //Manager dao manager interface
 type Manager interface {
 	//RegisterModel register model to manager
@@ -116,6 +122,20 @@ type Manager interface {
 	GenerateDaoWithWhere(modelName string, q query.Q, DB *gorm.DB, baseLogEntry *logrus.Entry) (dbWithWhere *gorm.DB, err error)
 	//SimpleManager generate simple dao manager
 	SimpleManager(DB *gorm.DB, baseLogEntry *logrus.Entry) SimpleDaoManager
+	//GetUsageCountQueries get usage count queries. this query will be use to determine is data allowed to be delete or not<br/>
+	// example :
+	// select   'UserRole' modelName ,  user_id   dataId , count(*) usageCount from sec_user_role where user_id in ( :ids )
+	// pattern of queries :
+	// result :
+	// a. modelName : name of model that using refered data
+	// b. dataId : id of data to count. aliased as dataId
+	// c. usageCount int64 : count of usage of data
+	// where
+	// there should be string :ids. this pattern will be replaced with id of data to be count the usage count
+	GetUsageCountQueries(dialect string, tableName string) (queries []string)
+
+	//RegisterUsageCountQuery register usage count query to manager
+	RegisterUsageCountQuery(dialect string, tableName string, query string)
 }
 
 //StructGeneratorFunction generator struct
@@ -180,6 +200,11 @@ func analizeModel(structType reflect.Type) (result modelWorker) {
 type managerImplementation struct {
 	//structGeneratorMap struct generator di index dengan model name
 	structGeneratorMap map[string]modelWorker
+
+	//usageCountQueries usage count queries
+	usageCountQueries usageCountQuery
+	//defaultUsageCountQueries if for example, postgres sql query was not defined, the default query will be returned for query of usage count on data
+	defaultUsageCountQueries usageCountQueryByDialect
 }
 
 //RegisterModel register model
@@ -187,6 +212,27 @@ func (p *managerImplementation) RegisterModel(instanceGenerators ...GeneratorDef
 	for _, smpl := range instanceGenerators {
 		p.registerModelWorker(smpl.Generator, smpl.SliceGenerator)
 	}
+}
+
+//GetUsageCountQueries get usage count queries. this query will be use to determine is data allowed to be delete or not
+func (p *managerImplementation) GetUsageCountQueries(dialect string, tableName string) (queries []string) {
+	if s, ok := p.usageCountQueries[dialect]; ok {
+		return s[tableName]
+	}
+	return p.defaultUsageCountQueries[tableName]
+}
+
+//RegisterUsageCountQuery register usage count query to manager
+func (p *managerImplementation) RegisterUsageCountQuery(dialect string, tableName string, query string) {
+	if _, ok := p.usageCountQueries[dialect]; !ok {
+		p.usageCountQueries[dialect] = make(usageCountQueryByDialect)
+	}
+	if _, ok2 := p.usageCountQueries[dialect][tableName]; !ok2 {
+		p.usageCountQueries[dialect][tableName] = []string{query}
+	} else {
+		p.usageCountQueries[dialect][tableName] = append(p.usageCountQueries[dialect][tableName], query)
+	}
+
 }
 
 //GetColumnName membaca nama column actual. dari catalog membaca nama actual column
@@ -318,5 +364,5 @@ func (p *managerImplementation) ParseJSONQuery(JSONQuery string, startModel stri
 
 //NewManager generate dao manager
 func NewManager() Manager {
-	return &managerImplementation{structGeneratorMap: make(map[string]modelWorker)}
+	return &managerImplementation{structGeneratorMap: make(map[string]modelWorker), usageCountQueries: make(usageCountQuery), defaultUsageCountQueries: make(usageCountQueryByDialect)}
 }

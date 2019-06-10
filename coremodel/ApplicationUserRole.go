@@ -7,25 +7,23 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-//LookupDetail Simple table lookup.for table : m_lookup_details
-type LookupDetail struct {
-	//ID column id
-	ID int32 `gorm:"column:id;AUTO_INCREMENT;primary_key" json:"id"`
-	//DetailCode column: detail_code kode detail
-	DetailCode string `gorm:"column:detail_code;" json:"detailCode"`
-	//LovID column: lov_id
-	LovID string `gorm:"column:lov_id;" json:"lovId"`
-	//Label label for lookup column: lov_label
-	Label string `gorm:"column:label;" json:"label"`
-	//Value1 label for value 1. arbitary data 1
-	Value1 string `gorm:"column:val_1;" json:"value11"`
-	//Value2 label for value 2. arbitary data 2
-	Value2 string `gorm:"column:val_2;" json:"value12"`
-	//I18nKey key internalization for lookup
-	I18nKey string `gorm:"column:i18n_key" json:"i18nKey"`
-	//SequenceNo sort no for lookup
-	SequenceNo int16 `gorm:"column:seq_no" json:"sequenceNo"`
+//aApplicationUserRoleTableName constant table name sec_user_role
+const aApplicationUserRoleTableName = "sec_user_role"
 
+//ApplicationUserRole mapper for table : sec_user_authority
+type ApplicationUserRole struct {
+	//ID column ID
+	ID int32 `gorm:"column:id;primary_key;AUTO_INCREMENT" json:"-"`
+	//UUID UUID of security group
+	UUID string `gorm:"column:uuid" json:"uid"`
+	//UserID column: user_id id of user
+	UserID int32 `gorm:"column:user_id" json:"-"`
+
+	//User refer with column: user_id
+	User ApplicationUser `gorm:"foreignKey:UserID" json:"user"`
+
+	//AuthCode column: authority_code, user auth code
+	AuthCode string `gorm:"column:authority_code" json:"authCode"`
 	//CreatedAt column : createdAt time when data was created
 	CreatedAt *time.Time `gorm:"column:createdAt" json:"createdAt"`
 	//CreatorName username (audit trail), who create data
@@ -41,13 +39,16 @@ type LookupDetail struct {
 	ModifiedIPAddress *string `gorm:"column:modified_by_ip" json:"modifiedIpAddress"`
 }
 
-//TableName table name for m_lookup_details
-func (u *LookupDetail) TableName(db *gorm.DB) (name string) {
-	return "ct_lookup_details"
+//TableName table of struct
+func (u ApplicationUserRole) TableName(db *gorm.DB) string {
+	return aApplicationUserRoleTableName
 }
 
+//sampleAppAuthStruct helper. for reuse, when need to get table name.in case used in multiple scheme
+var sampleAppAuthStruct = ApplicationUserRole{}
+
 //BeforeCreate before create task. to assign IP address and username on data
-func (u *LookupDetail) BeforeCreate(scope *gorm.Scope) (err error) {
+func (u ApplicationUserRole) BeforeCreate(scope *gorm.Scope) (err error) {
 	if len(u.CreatorName) == 0 {
 		if uname, okName := scope.Get(common.GormVariableUsername); okName {
 			u.CreatorName = uname.(string)
@@ -62,7 +63,7 @@ func (u *LookupDetail) BeforeCreate(scope *gorm.Scope) (err error) {
 }
 
 //BeforeUpdate task before update
-func (u *LookupDetail) BeforeUpdate(scope *gorm.Scope) (err error) {
+func (u ApplicationUserRole) BeforeUpdate(scope *gorm.Scope) (err error) {
 	if u.ModifiedBy == nil || len(*u.ModifiedBy) == 0 {
 		if uname, okName := scope.Get(common.GormVariableUsername); okName {
 			strUname := uname.(string)

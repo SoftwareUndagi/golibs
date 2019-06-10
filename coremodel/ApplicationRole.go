@@ -7,25 +7,15 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-//LookupDetail Simple table lookup.for table : m_lookup_details
-type LookupDetail struct {
-	//ID column id
-	ID int32 `gorm:"column:id;AUTO_INCREMENT;primary_key" json:"id"`
-	//DetailCode column: detail_code kode detail
-	DetailCode string `gorm:"column:detail_code;" json:"detailCode"`
-	//LovID column: lov_id
-	LovID string `gorm:"column:lov_id;" json:"lovId"`
-	//Label label for lookup column: lov_label
-	Label string `gorm:"column:label;" json:"label"`
-	//Value1 label for value 1. arbitary data 1
-	Value1 string `gorm:"column:val_1;" json:"value11"`
-	//Value2 label for value 2. arbitary data 2
-	Value2 string `gorm:"column:val_2;" json:"value12"`
-	//I18nKey key internalization for lookup
-	I18nKey string `gorm:"column:i18n_key" json:"i18nKey"`
-	//SequenceNo sort no for lookup
-	SequenceNo int16 `gorm:"column:seq_no" json:"sequenceNo"`
+//applicationAuthorityTableName constant table name sec_role
+const applicationRoleTableName = "sec_role"
 
+//ApplicationRole struct for table : sec_role
+type ApplicationRole struct {
+	//Code column: code. code of authority
+	Code string `gorm:"column:code;primary_key" json:"code"`
+	//Remark remark for group column: remark
+	Remark string `gorm:"column:remark" json:"remark"`
 	//CreatedAt column : createdAt time when data was created
 	CreatedAt *time.Time `gorm:"column:createdAt" json:"createdAt"`
 	//CreatorName username (audit trail), who create data
@@ -41,13 +31,13 @@ type LookupDetail struct {
 	ModifiedIPAddress *string `gorm:"column:modified_by_ip" json:"modifiedIpAddress"`
 }
 
-//TableName table name for m_lookup_details
-func (u *LookupDetail) TableName(db *gorm.DB) (name string) {
-	return "ct_lookup_details"
+//TableName table name for struct ApplicationGroup
+func (u ApplicationRole) TableName(db *gorm.DB) string {
+	return applicationRoleTableName
 }
 
 //BeforeCreate before create task. to assign IP address and username on data
-func (u *LookupDetail) BeforeCreate(scope *gorm.Scope) (err error) {
+func (u ApplicationRole) BeforeCreate(scope *gorm.Scope) (err error) {
 	if len(u.CreatorName) == 0 {
 		if uname, okName := scope.Get(common.GormVariableUsername); okName {
 			u.CreatorName = uname.(string)
@@ -62,7 +52,7 @@ func (u *LookupDetail) BeforeCreate(scope *gorm.Scope) (err error) {
 }
 
 //BeforeUpdate task before update
-func (u *LookupDetail) BeforeUpdate(scope *gorm.Scope) (err error) {
+func (u ApplicationRole) BeforeUpdate(scope *gorm.Scope) (err error) {
 	if u.ModifiedBy == nil || len(*u.ModifiedBy) == 0 {
 		if uname, okName := scope.Get(common.GormVariableUsername); okName {
 			strUname := uname.(string)

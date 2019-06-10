@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/SoftwareUndagi/golibs/coremodel"
+	"github.com/SoftwareUndagi/golibs/security"
 
 	"github.com/SoftwareUndagi/golibs/common"
 	"github.com/gorilla/mux"
@@ -163,7 +164,7 @@ var DefaultGetterEditorToken = GetEditorTokenOnRequestHeader
 type RouteLoggerPredefinedParameterFiller func(executionID string, routePath string, req *http.Request, routeParameter Parameter, username string, userUUID string, logEntry *log.Entry) (modifiedLogEntry *log.Entry)
 
 //LoginInformationProviderFunction login handler definition
-type LoginInformationProviderFunction func(DatabaseReference *gorm.DB, logEntry *log.Entry, req *http.Request) (userData common.SimpleUserData, err common.ErrorWithCodeData)
+type LoginInformationProviderFunction func(DatabaseReference *gorm.DB, logEntry *log.Entry, req *http.Request) (userData security.SimpleUserData, err common.ErrorWithCodeData)
 
 //CORSAllowedPaths path yang di injinkan cors
 var CORSAllowedPaths = make(map[string][]string)
@@ -395,10 +396,11 @@ func generateSimpleRequestExecutionID(req *http.Request) (executionID string) {
 //localDB = db for current connection
 func generateCommonHTTPParam(executionID string, baseLogEntry *log.Entry, routePath string, req *http.Request, routeParameter Parameter, username string, userUUID string) (requestID string, commonParam HTTPCommonParameter) {
 
-	logEntry := baseLogEntry.WithField("executionId", executionID)
-	routeParameter.DatabaseReference.InstantSet("executionId", executionID)
-	routeParameter.DatabaseReference.InstantSet("username", username)
-	routeParameter.DatabaseReference.InstantSet("userUUID", userUUID)
+	logEntry := baseLogEntry.WithField(common.GormVariableExecutionID, executionID)
+	routeParameter.DatabaseReference.InstantSet(common.GormVariableExecutionID, executionID)
+	routeParameter.DatabaseReference.InstantSet(common.GormVariableUsername, username)
+	routeParameter.DatabaseReference.InstantSet(common.GormVariableIPAddress, req.RemoteAddr)
+	routeParameter.DatabaseReference.InstantSet(common.GormVariableUserUUID, userUUID)
 	requestID = executionID
 	if customDaoAndLoggerAttributeGenerator != nil {
 		x1, x2 := customDaoAndLoggerAttributeGenerator(executionID, routePath, req, routeParameter, username, userUUID, logEntry)

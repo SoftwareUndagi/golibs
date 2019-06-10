@@ -8,15 +8,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//ApplicationAuthorityDao consolidation function for auth related data
-type ApplicationAuthorityDao struct {
+//ApplicationRoleDao consolidation function for auth related data
+type ApplicationRoleDao struct {
 }
 
-var cacheTableAuth = coremodel.ApplicationAuthority{}
-var commonApplicationAuthorityDao = ApplicationAuthorityDao{}
+var cacheTableAuth = coremodel.ApplicationRole{}
+var commonApplicationRoleDao = ApplicationRoleDao{}
 
 //IncrementUsageCount increment usage_count field on table sec_authority
-func (p *ApplicationAuthorityDao) IncrementUsageCount(authCodes []string, username string, ipAddress string, db *gorm.DB, logEntry *logrus.Entry) (err error) {
+func (p *ApplicationRoleDao) IncrementUsageCount(authCodes []string, username string, ipAddress string, db *gorm.DB, logEntry *logrus.Entry) (err error) {
 	if len(authCodes) == 0 {
 		return
 	}
@@ -36,7 +36,7 @@ func (p *ApplicationAuthorityDao) IncrementUsageCount(authCodes []string, userna
 }
 
 //DecrementUsageCount decrement usage count on user sec_authority
-func (p *ApplicationAuthorityDao) DecrementUsageCount(authCodes []string, username string, ipAddress string, db *gorm.DB, logEntry *logrus.Entry) (err error) {
+func (p *ApplicationRoleDao) DecrementUsageCount(authCodes []string, username string, ipAddress string, db *gorm.DB, logEntry *logrus.Entry) (err error) {
 	if len(authCodes) == 0 {
 		return
 	}

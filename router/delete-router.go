@@ -89,7 +89,7 @@ func RegisterDeleteJSONHandler(param RegisterDeleteJSONHandlerParam) *mux.Route 
 					return
 				}
 			}
-			userUUID = user.UserUUID
+			userUUID = user.UUID
 			username = user.Username
 		}
 		if param.CheckForDoubleSubmit != nil {

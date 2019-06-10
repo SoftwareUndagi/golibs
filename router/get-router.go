@@ -92,7 +92,7 @@ func RegisterGetJSONHandler(param RegisterGetJSONHandlerParam) *mux.Route {
 
 				}
 			}
-			userUUID = user.UserUUID
+			userUUID = user.UUID
 			username = user.Username
 		}
 		if param.CheckForDoubleSubmit != nil {
@@ -111,6 +111,7 @@ func RegisterGetJSONHandler(param RegisterGetJSONHandlerParam) *mux.Route {
 		}
 
 		localDB := routeParameter.DatabaseReference.New()
+
 		//defer localDB.Close()
 		_, commParam := generateCommonHTTPParam(executionID, logEntry, routePath, req, param.RouteParameter.Clone(localDB), username, userUUID)
 		v := HTTPGetParameter{
