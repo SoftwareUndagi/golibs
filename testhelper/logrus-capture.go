@@ -2,6 +2,7 @@ package testhelper
 
 import (
 	"io"
+	"os"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -9,7 +10,10 @@ import (
 
 //LogCapturer logger interface
 type LogCapturer interface {
+	//Release release log
 	Release()
+	//SetJSONFormatLog set formmater
+	SetJSONFormatLog(destinationFile string) (err error)
 }
 
 type logCapturer struct {
@@ -35,6 +39,16 @@ func (tl logCapturer) Write(p []byte) (n int, err error) {
 
 func (tl logCapturer) Release() {
 	logrus.SetOutput(tl.origOut)
+}
+
+//SetJSONFormatLog set logger to json. and log to fle
+func (tl logCapturer) SetJSONFormatLog(destinationFile string) (err error) {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	f, err1 := os.OpenFile(destinationFile, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+	err = err1
+	logrus.SetOutput(f)
+	return
+
 }
 
 // CaptureLog redirects logrus output to testing.Log

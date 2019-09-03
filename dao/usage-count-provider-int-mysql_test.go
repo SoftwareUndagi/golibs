@@ -9,7 +9,8 @@ import (
 )
 
 func TestUsageCountIdInt16Mysql(t *testing.T) {
-	db, err := testhelper.MysqlTestAppSetup(t)
+	db, _, err := testhelper.MysqlTestAppSetup(t)
+
 	if err != nil {
 		t.Errorf("Error open connection , error: %s", err.Error())
 		return
@@ -38,7 +39,7 @@ func TestUsageCountIdInt16Mysql(t *testing.T) {
 }
 
 func TestUsageCountIdInt32Mysql(t *testing.T) {
-	db, err := testhelper.MysqlTestAppSetup(t)
+	db, _, err := testhelper.MysqlTestAppSetup(t)
 	if err != nil {
 		t.Errorf("Error open connection , error: %s", err.Error())
 		return
@@ -70,7 +71,7 @@ func TestUsageCountIdInt32Mysql(t *testing.T) {
 }
 
 func TestUsageCountIdInt64Mysql(t *testing.T) {
-	db, err := testhelper.MysqlTestAppSetup(t)
+	db, _, err := testhelper.MysqlTestAppSetup(t)
 	if err != nil {
 		t.Errorf("Error open connection , error: %s", err.Error())
 		return

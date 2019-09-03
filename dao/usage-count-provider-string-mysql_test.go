@@ -8,7 +8,7 @@ import (
 )
 
 func TestUsageCountIdString32Mysql(t *testing.T) {
-	db, err := testhelper.MysqlTestAppSetup(t)
+	db, _, err := testhelper.MysqlTestAppSetup(t)
 	if err != nil {
 		t.Errorf("Error open connection , error: %s", err.Error())
 		return

@@ -15,6 +15,7 @@ import (
 //FindLookupHeaders read lookup headers with lov id
 func FindLookupHeaders(lovIDs []string, db *gorm.DB, logEntry *logrus.Entry) (lookupHeaders []coremodel.LookupHeader, err error) {
 	var colName string
+
 	logEntry = logEntry.WithField("lovIds", lovIDs).WithField("model", "LookupHeader")
 	colName, err = dao.DefaultDaoManager.GetColumnName("LookupHeader", "ID")
 	if err != nil {
@@ -22,11 +23,29 @@ func FindLookupHeaders(lovIDs []string, db *gorm.DB, logEntry *logrus.Entry) (lo
 		return
 	}
 	whSmt := fmt.Sprintf("%s in (?) ", colName)
-	if dbRslt := db.Where(whSmt, lovIDs).Find(&lookupHeaders); dbRslt.Error != nil {
+	//singleResult := coremodel.LookupHeader{}
+	//lookupHeaders = make([]coremodel.LookupHeader, 0)
+	dbRslt := db.Where(whSmt, lovIDs).Find(&coremodel.LookupHeader{})
+	if dbRslt.Error != nil {
 		err = dbRslt.Error
 		logEntry.WithError(err).Errorf("Fail to query for lookup. error: %s", err.Error())
 		return
 	}
+	rows, errRow := dbRslt.Rows()
+
+	if errRow != nil {
+		err = errRow
+		return
+	}
+	lookupHeaders = make([]coremodel.LookupHeader, dbRslt.RowsAffected, dbRslt.RowsAffected)
+	var i int
+	for rows.Next() {
+		var rslt coremodel.LookupHeader
+		db.ScanRows(rows, &rslt)
+		lookupHeaders[i] = rslt
+		i++
+	}
+
 	return
 }
 
@@ -39,13 +58,13 @@ func assignToLookupHeader(indexedLookup *map[string]*coremodel.LookupHeader, loo
 }
 
 //QueryForLookupWithSQLVersion run query to query for driven by sql query
-func QueryForLookupWithSQLVersion(lookupHeaders []coremodel.LookupHeader, db *gorm.DB, logEntry *logrus.Entry) (err error) {
+func QueryForLookupWithSQLVersion(lookupHeaders []*coremodel.LookupHeader, db *gorm.DB, logEntry *logrus.Entry) (err error) {
 	versionFinderStatment := []string{}
 	mapByLovID := make(map[string]*coremodel.LookupHeader)
 
 	for _, h := range lookupHeaders {
 		versionFinderStatment = append(versionFinderStatment, h.SQLForVersion)
-		mapByLovID[h.ID] = &h
+		mapByLovID[h.ID] = h
 
 	}
 	finalSQL := strings.Join(versionFinderStatment, " union all ")
@@ -66,16 +85,27 @@ func QueryForLookupWithSQLVersion(lookupHeaders []coremodel.LookupHeader, db *go
 	return
 }
 
+//internalLookupDetailResult temporary wrapper for lookup result. for convert data to lookup detail struct
+type internalLookupDetailResult struct {
+	detailCode string
+	lovId      string
+	label      string
+	value1     *string
+	value2     *string
+	sequenceNo *int16
+	i18nKey    *string
+}
+
 //FindSQLDrivenLookupDetails query for custom sql driven lookup. lookup detail will also appended to lookup header
 // so there is not needed to append detail to header manually
-func FindSQLDrivenLookupDetails(lookupHeaders []coremodel.LookupHeader, db *gorm.DB, logEntry *logrus.Entry) (lookupDetails []coremodel.LookupDetail, err error) {
+func FindSQLDrivenLookupDetails(lookupHeaders []coremodel.LookupHeader, db *gorm.DB, logEntry *logrus.Entry) (lookupDetails []coremodel.LookupDetail, indexedLookup map[string]*coremodel.LookupHeader, err error) {
 	if len(lookupHeaders) == 0 {
 		return
 	}
 	dataFinderStatment := []string{}
-	mapByLovID := make(map[string]*coremodel.LookupHeader)
+	indexedLookup = make(map[string]*coremodel.LookupHeader)
 	for _, h := range lookupHeaders {
-		mapByLovID[h.ID] = &h
+		indexedLookup[h.ID] = &h
 		if h.SQLForData == nil {
 			continue
 		}
@@ -83,21 +113,42 @@ func FindSQLDrivenLookupDetails(lookupHeaders []coremodel.LookupHeader, db *gorm
 
 	}
 	if len(dataFinderStatment) == 0 {
-		logEntry.WithField("lovIds", reflect.ValueOf(mapByLovID).MapKeys()).Warnf("No sql for lookup is found in all lookup data, no sql statement executed")
+		logEntry.WithField("lovIds", reflect.ValueOf(indexedLookup).MapKeys()).Warnf("No sql for lookup is found in all lookup data, no sql statement executed")
 		return
 	}
 	finalSQL := strings.Join(dataFinderStatment, " union all ")
-	rows, errRow := db.Raw(finalSQL).Rows()
+	defer func() {
+		if swapErr := recover(); swapErr != nil {
+			fmt.Print("error: ", swapErr)
+			//err = fmt.Errorf("%v", swapErr)
+		}
+	}()
+	logEntry.WithField("sql", finalSQL).Info("SQL")
+	rslt := db.Raw(finalSQL)
+	if rslt.Error != nil {
+		err = rslt.Error
+		logEntry.WithFields(logrus.Fields{"sql": finalSQL}).WithError(err).Errorf("Fail to query for LOV detail with sql, error: %s", err.Error())
+	}
+	rows, errRow := rslt.Rows()
 	if errRow != nil {
-		logEntry.WithError(errRow).WithField("lovIds", reflect.ValueOf(mapByLovID).MapKeys()).Errorf("Fail to run query for lookup data , error: %s", errRow.Error())
-		return nil, errRow
+		logEntry.WithError(errRow).WithField("lovIds", reflect.ValueOf(indexedLookup).MapKeys()).Errorf("Fail to run query for lookup data , error: %s", errRow.Error())
+		return nil, nil, errRow
 	}
 	defer rows.Close()
 	for rows.Next() {
+
 		var lkpDetail coremodel.LookupDetail
 		db.ScanRows(rows, &lkpDetail)
+		cols, _ := rows.Columns()
+
+		logEntry.WithField("cols", cols).Info("asas")
 		lookupDetails = append(lookupDetails, lkpDetail)
-		mapByLovID[lkpDetail.LovID].AppendLookupDetail(lkpDetail)
+		lkh, ok := indexedLookup[lkpDetail.LovID]
+		if !ok {
+			logEntry.WithField("lovID", lkpDetail.LovID).Warnf("LOV id was not found on index. need to check query")
+			continue
+		}
+		lkh.AppendLookupDetail(lkpDetail)
 	}
 	return
 }

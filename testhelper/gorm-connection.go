@@ -112,7 +112,7 @@ func PosgresqlTestAppSetup(t *testing.T) (db *gorm.DB, err error) {
 }
 
 //MysqlTestAppSetup run setup testing mysql
-func MysqlTestAppSetup(t *testing.T) (db *gorm.DB, err error) {
+func MysqlTestAppSetup(t *testing.T) (db *gorm.DB, logCapture *LogCapturer, err error) {
 	username := os.Getenv("mysql.dbUser")
 	password := os.Getenv("mysql.dbPassword")
 	hostname := os.Getenv("mysql.dbHostName")
@@ -145,8 +145,11 @@ func MysqlTestAppSetup(t *testing.T) (db *gorm.DB, err error) {
 		return
 	}
 	db.LogMode(true)
+
 	db.InstantSet(common.GormVariableUsername, loggerUsername)
 	db.InstantSet(common.GormVariableIPAddress, ipAddress)
-	CaptureLog(t).Release()
+	logCaptureSwap := CaptureLog(t)
+	logCapture = &logCaptureSwap
+	//logCaptureSwap.Release()
 	return
 }

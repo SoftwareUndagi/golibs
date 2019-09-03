@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -36,6 +37,11 @@ func AppendFilePaths(basePath string, fileOrFolders ...string) string {
 
 }
 
+//CreateFilePathOnTempDirectory create file on temp directory. for example to create logging
+func CreateFilePathOnTempDirectory(fileName string) (fullPath string) {
+	return AppendFilePath(os.TempDir(), fileName)
+}
+
 //MakeDirectoryHelper helper membuat directory. kalau directory tidak ada. ini tidak menyertakan pembuatan kalau directory nested
 func MakeDirectoryHelper(destinationFolder string, loggerEntry *logrus.Entry) (err error) {
 	if _, err := os.Stat(destinationFolder); os.IsNotExist(err) {
@@ -52,4 +58,26 @@ func MakeDirectoryHelper(destinationFolder string, loggerEntry *logrus.Entry) (e
 //ForceDeleteFolder delete folder yang tidak kosong. paksa
 func ForceDeleteFolder(foldername string, loggerEntry *logrus.Entry) (err error) {
 	return os.RemoveAll(foldername)
+}
+
+var osSeparator = string(os.PathSeparator)
+
+//GetFileDirectory get directory of full path
+func GetFileDirectory(fullPath string) (directoryPath string) {
+	spl := strings.Split(fullPath, osSeparator)
+	spl = spl[0 : len(spl)-1]
+	return strings.Join(spl, osSeparator)
+
+}
+
+//GetCurrentExecutableDir check current directory(read with runtime)
+func GetCurrentExecutableDir() (directoryPath string, ok bool) {
+	_, filename, _, ok1 := runtime.Caller(0)
+	ok = ok1
+	if !ok1 {
+		return
+	}
+	directoryPath = GetFileDirectory(filename)
+	return
+
 }

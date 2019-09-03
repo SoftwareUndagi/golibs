@@ -1,0 +1,13 @@
+Title: this is how gorm run query
+main -> callback_query : Find
+callback_query -> sql : queryCallback
+sql -> sql : Query
+sql -> sql : query
+sql -> ctxutil: queryDC
+ctxutil -> connection : QueryContext
+connection -> connection: query
+note over main: class = jinzu/gorm/main.go
+note over callback_query: class = jinzu/gorm/callback_query.go
+note over sql: class = go/src/database/sql/sql.go
+note over ctxutil: class = go/src/database/sql/ctxutil.go
+note over connection: class = github.com/go-sql-driver/mysql/connection.go

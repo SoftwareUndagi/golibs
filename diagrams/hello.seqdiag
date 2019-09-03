@@ -1,3 +1,6 @@
-Class1 -> Class2 : hellow
-Note right of Class1: doodl garut
-Note right of Class2: Alpha omega \n gamma
+callback_query -> sql : queryCallback
+sql -> sql : Query
+sql -> sql : query
+sql -> ctxutil: queryDC
+ctxutil -> connection : QueryContext
+connection -> connection: query
